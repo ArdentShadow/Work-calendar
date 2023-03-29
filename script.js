@@ -1,111 +1,67 @@
+// GLOBAL VARIABLES
+var currentHour = moment().hours(); // Get current hour using moment.js
+var timeBlockEl = document.querySelector('.container');
 
-  // Display current date at top of page
-  $("#currentDay").text(moment().format("dddd, MMMM Do"));
+// REFERENCES
+// Display the current date and time on the paragraph with an id of "currentDay"
+document.getElementById('currentDay').textContent = moment().format('LLLL');
 
-  // Get saved schedule from local storage or create empty array
-  var schedule = JSON.parse(localStorage.getItem("schedule")) || [];
+// EVENT LISTENER
+// Event listener for saveBtn click
+document.querySelectorAll('.saveBtn').forEach(function (saveBtn) {
+  saveBtn.addEventListener('click', function () {
+    // get nearby values of the description
+    var textValue = this.previousElementSibling.value;
+    // get the id attribute of the parent div element
+    var timeKey = this.parentNode.id;
 
-  // Function to render timeblocks with saved schedule data
-  function renderSchedule() {
-    // Loop through each timeblock
-    $(".time-block").each(function(index) {
-      // Set the time for this timeblock based on its position in the loop
-      var time = moment().hour(9 + index);
-
-      // Set the text content of the timeblock's hour div
-      $(this).find(".hour").text(time.format("hA"));
-
-      // Set the class of the description textarea based on whether it's in the past, present, or future
-      if (time.isBefore(moment(), "hour")) {
-        $(this).find(".description").addClass("past");
-      } else if (time.isSame(moment(), "hour")) {
-        $(this).find(".description").addClass("present");
-      } else {
-        $(this).find(".description").addClass("future");
-      }
-
-      // Get the schedule data for this timeblock from the saved schedule array
-      var scheduleData = schedule.find(function(item) {
-        return item.time === time.format("hA");
-      });
-
-      // If there is saved schedule data for this timeblock, set the textarea's text to it
-      if (scheduleData) {
-        $(this).find(".description").val(scheduleData.text);
-      }
-    });
-  }
-
-  // Call renderSchedule to initially render the timeblocks
-  renderSchedule();
-
-  // Save schedule data to local storage when save button is clicked
-  $(".saveBtn").on("click", function() {
-    // Get the text content of the description textarea and the corresponding hour div
-    var text = $(this).siblings(".description").val();
-    var time = $(this).siblings(".hour").text();
-
-    // Find the index of any existing schedule data with this time and overwrite it, or create new schedule data and push it to the array
-    var index = schedule.findIndex(function(item) {
-      return item.time === time;
-    });
-
-    if (index !== -1) {
-      schedule[index].text = text;
-    } else {
-      schedule.push({
-        time: time,
-        text: text
-      });
-    }
-
-    // Save the updated schedule array to local storage
-    localStorage.setItem("schedule", JSON.stringify(schedule));
+    // save in local storage
+    localStorage.setItem(timeKey, textValue);
   });
+});
 
-function validateForm() {
-    var name = document.forms["contactForm"]["name"].value;
-    var email = document.forms["contactForm"]["email"].value;
-    var message = document.forms["contactForm"]["message"].value;
-  
-    if (name == "") {
-      alert("Name must be filled out");
-      return false;
+// Get item from local storage if any
+document.getElementById('hour8').querySelector('.description').value = localStorage.getItem('hour8');
+document.getElementById('hour9').querySelector('.description').value = localStorage.getItem('hour9');
+document.getElementById('hour10').querySelector('.description').value = localStorage.getItem('hour10');
+document.getElementById('hour11').querySelector('.description').value = localStorage.getItem('hour11');
+document.getElementById('hour12').querySelector('.description').value = localStorage.getItem('hour12');
+document.getElementById('hour13').querySelector('.description').value = localStorage.getItem('hour13');
+document.getElementById('hour14').querySelector('.description').value = localStorage.getItem('hour14');
+document.getElementById('hour15').querySelector('.description').value = localStorage.getItem('hour15');
+document.getElementById('hour16').querySelector('.description').value = localStorage.getItem('hour16');
+document.getElementById('hour17').querySelector('.description').value = localStorage.getItem('hour17');
+
+// FUNCTION TO AUDIT TASKS AND MAKE THEM CHANGE COLORS
+function auditTask() {
+  // loop over each time block
+  document.querySelectorAll('.time-block').forEach(function (timeBlock) {
+    var timeId = parseInt(timeBlock.id.split('hour')[1]);
+
+    // if the time block is before the current time, add the 'past' class
+    if (timeId < currentHour) {
+      timeBlock.classList.add('past');
     }
-  
-    if (email == "") {
-      alert("Email must be filled out");
-      return false;
+    // if the time block is the current time, remove the 'past' and 'future' classes and add the 'present' class
+    else if (timeId === currentHour) {
+      timeBlock.classList.remove('past');
+      timeBlock.classList.remove('future');
+      timeBlock.classList.add('present');
     }
-  
-    if (message == "") {
-      alert("Message must be filled out");
-      return false;
+    // if the time block is in the future, remove the 'past' and 'present' classes and add the 'future' class
+    else {
+      timeBlock.classList.remove('past');
+      timeBlock.classList.remove('present');
+      timeBlock.classList.add('future');
     }
-  
-    return true;
-  }
-  
-  function toggleMenu() {
-    var menu = document.getElementById("nav-links");
-    if (menu.style.display === "block") {
-      menu.style.display = "none";
-    } else {
-      menu.style.display = "block";
-    }
-  }
-  
-  function initMap() {
-    var myLatLng = { lat: 40.7128, lng: -74.006 };
-  
-    var map = new google.maps.Map(document.getElementById("map"), {
-      zoom: 12,
-      center: myLatLng,
-    });
-  
-    var marker = new google.maps.Marker({
-      position: myLatLng,
-      map: map,
-      title: "New York, NY",
-    });
-  }
+  });
+}
+
+// CALL THE AUDIT TASK FUNCTION
+auditTask();
+
+// USE SETTIMEOUT TO UPDATE THE TIME EVERY MINUTE (1000ms * 60s)
+setInterval(function () {
+  currentHour = moment().hours(); // Update current hour
+  auditTask();
+}, 1000 * 60); // Run every minute
